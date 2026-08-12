@@ -9,8 +9,11 @@ export async function analyzeMedia(files: File[], keywords?: string): Promise<Mo
     try {
       const result = await analyzeWithGemini(files, keywords);
       return { ...result, mock: false };
-    } catch (error) {
-      console.error("Gemini analysis error:", error);
+    } catch (error: any) {
+      console.error("Gemini provider failed:", error?.message || error);
+      if (process.env.NODE_ENV === "production" && !process.env.OPENAI_API_KEY) {
+        throw error;
+      }
     }
   }
   
@@ -19,14 +22,17 @@ export async function analyzeMedia(files: File[], keywords?: string): Promise<Mo
     try {
       const result = await analyzeWithOpenAI(files, keywords);
       return { ...result, mock: false };
-    } catch (error) {
-      console.error("OpenAI analysis error:", error);
+    } catch (error: any) {
+      console.error("OpenAI provider failed:", error?.message || error);
+      if (process.env.NODE_ENV === "production") {
+        throw error;
+      }
     }
   }
 
-  // In production, do not silently fallback to mock data if AI keys are missing or provider fails
+  // In production, do not silently fallback to mock data if AI keys are missing
   if (process.env.NODE_ENV === "production") {
-    throw new Error("AI analysis failed in production: No valid AI API key configured or AI providers failed. Check Vercel environment variables (GEMINI_API_KEY / OPENAI_API_KEY) and Vercel logs.");
+    throw new Error("Missing GEMINI_API_KEY environment variable in production.");
   }
 
   // Only fallback to mock in development mode

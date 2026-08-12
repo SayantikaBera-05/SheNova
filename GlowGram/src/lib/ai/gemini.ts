@@ -2,13 +2,14 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { MoodAnalysisResult } from "@/types";
 
 const MODEL_CANDIDATES = [
-  "gemini-1.5-flash",
-  "gemini-1.5-pro"
+  "gemini-3.1-flash-lite",
+  "gemini-2.0-flash-lite",
+  "gemini-flash-latest"
 ];
 
 export async function analyzeWithGemini(files: File[], keywords?: string): Promise<MoodAnalysisResult> {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error("Missing GEMINI_API_KEY");
+  if (!apiKey) throw new Error("Missing GEMINI_API_KEY environment variable");
 
   const genAI = new GoogleGenerativeAI(apiKey);
 
@@ -73,6 +74,7 @@ Return ONLY a strict JSON object (no markdown, no preamble) matching this struct
   let lastError: any = null;
   for (const modelName of MODEL_CANDIDATES) {
     try {
+      console.log(`[Gemini API] Executing generateContent with model: ${modelName}`);
       const model = genAI.getGenerativeModel({ model: modelName });
       const result = await model.generateContent([prompt, ...parts]);
       const response = await result.response;
@@ -87,10 +89,14 @@ Return ONLY a strict JSON object (no markdown, no preamble) matching this struct
       
       return parsed;
     } catch (err: any) {
-      console.warn(`Gemini model ${modelName} failed:`, err?.message || err);
+      console.error(`[Gemini API Error] Model '${modelName}' returned error:`, {
+        status: err?.status,
+        statusCode: err?.statusCode,
+        message: err?.message || String(err),
+      });
       lastError = err;
     }
   }
 
-  throw lastError || new Error("All Gemini model candidates failed");
+  throw new Error(`Gemini API analysis failed: ${lastError?.message || lastError || "All candidate models failed"}`);
 }

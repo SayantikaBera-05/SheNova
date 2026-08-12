@@ -24,7 +24,12 @@ export async function analyzeMedia(files: File[], keywords?: string): Promise<Mo
     }
   }
 
-  // Only fallback to mock if no AI API key works
-  console.warn("Using mock analysis as fallback");
+  // In production, do not silently fallback to mock data if AI keys are missing or provider fails
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("AI analysis failed in production: No valid AI API key configured or AI providers failed. Check Vercel environment variables (GEMINI_API_KEY / OPENAI_API_KEY) and Vercel logs.");
+  }
+
+  // Only fallback to mock in development mode
+  console.warn("Using mock analysis as fallback (development mode)");
   return await getMockAnalysis(keywords || files[0]?.name);
 }

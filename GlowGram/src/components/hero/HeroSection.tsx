@@ -137,7 +137,7 @@ export function HeroSection() {
                 {/* Video Player */}
                 <div className="relative aspect-video w-full max-h-[75vh] bg-black flex items-center justify-center overflow-hidden">
                   <video
-                    src="/glowgram_video.mp4"
+                    src={process.env.NEXT_PUBLIC_DEMO_VIDEO_URL || "/glowgram_video.mp4"}
                     controls
                     autoPlay
                     playsInline

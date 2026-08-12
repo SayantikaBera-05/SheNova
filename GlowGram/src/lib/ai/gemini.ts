@@ -2,10 +2,11 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { MoodAnalysisResult } from "@/types";
 
 const MODEL_CANDIDATES = [
-  "gemini-3.6-flash",
-  "gemini-3.5-flash",
-  "gemini-2.0-flash-lite",
-  "gemini-flash-latest"
+  "gemini-2.5-flash",
+  "gemini-2.0-flash",
+  "gemini-1.5-flash",
+  "gemini-1.5-pro",
+  "gemini-2.0-flash-lite"
 ];
 
 export async function analyzeWithGemini(files: File[], keywords?: string): Promise<MoodAnalysisResult> {

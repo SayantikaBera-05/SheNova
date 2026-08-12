@@ -9,28 +9,32 @@ export async function POST(request: Request) {
 
     const apiKey = process.env.GEMINI_API_KEY;
 
+    const MODEL_CANDIDATES = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.0-flash-lite'];
+
     if (type === "tracks") {
       if (apiKey) {
-        try {
-          const genAI = new GoogleGenerativeAI(apiKey);
-          const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
-          const prompt = `Suggest ONE specific real song (title and artist) matching this vibe.
+        for (const modelName of MODEL_CANDIDATES) {
+          try {
+            const genAI = new GoogleGenerativeAI(apiKey);
+            const model = genAI.getGenerativeModel({ model: modelName });
+            const prompt = `Suggest ONE specific real song (title and artist) matching this vibe.
 Mood: "${mood || 'Chill'}"
 Playlist Theme: "${playlistTheme || 'Aesthetic'}"
 Visual Context: "${contextDescription || ''}"
 User Custom Request: "${keywords || 'None'}"
 
 Return ONLY strict JSON: { "title": "Song Title", "artist": "Artist Name" }`;
-          
-          const res = await model.generateContent(prompt);
-          const text = res.response.text().replace(/```json/g, "").replace(/```/g, "").trim();
-          const parsed = JSON.parse(text);
-          if (parsed.title && parsed.artist) {
-            const track = await searchSingleTrack(parsed.title, parsed.artist);
-            return NextResponse.json({ recommendedTracks: [track] });
+            
+            const res = await model.generateContent(prompt);
+            const text = res.response.text().replace(/```json/g, "").replace(/```/g, "").trim();
+            const parsed = JSON.parse(text);
+            if (parsed.title && parsed.artist) {
+              const track = await searchSingleTrack(parsed.title, parsed.artist);
+              return NextResponse.json({ recommendedTracks: [track] });
+            }
+          } catch (err) {
+            console.warn(`Gemini track regeneration error (${modelName}):`, err);
           }
-        } catch (err) {
-          console.warn("Gemini track regeneration error:", err);
         }
       }
       
@@ -40,27 +44,33 @@ Return ONLY strict JSON: { "title": "Song Title", "artist": "Artist Name" }`;
 
     if (type === "captions") {
       if (apiKey && tone) {
-        try {
-          const genAI = new GoogleGenerativeAI(apiKey);
-          const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
-          const prompt = `Write ONE fresh, unique social media caption in a "${tone}" tone.
+        for (const modelName of MODEL_CANDIDATES) {
+          try {
+            const genAI = new GoogleGenerativeAI(apiKey);
+            const model = genAI.getGenerativeModel({ model: modelName });
+            const prompt = `Write ONE fresh, unique social media caption in a "${tone}" tone.
 Mood: "${mood || ''}"
 Visual context: "${contextDescription || ''}"
 User custom instruction: "${keywords || ''}"
 
 Return ONLY strict JSON: { "text": "Caption text..." }`;
 
-          const res = await model.generateContent(prompt);
-          const text = res.response.text().replace(/```json/g, "").replace(/```/g, "").trim();
-          const parsed = JSON.parse(text);
-          if (parsed.text) {
-            return NextResponse.json({ 
-              captions: [{ id: `cap-${Date.now()}`, tone, text: parsed.text }] 
-            });
+            const res = await model.generateContent(prompt);
+            const text = res.response.text().replace(/```json/g, "").replace(/```/g, "").trim();
+            const parsed = JSON.parse(text);
+            if (parsed.text) {
+              return NextResponse.json({ 
+                captions: [{ id: `cap-${Date.now()}`, tone, text: parsed.text }] 
+              });
+            }
+          } catch (err) {
+            console.warn(`Gemini caption regeneration error (${modelName}):`, err);
           }
-        } catch (err) {
-          console.warn("Gemini caption regeneration error:", err);
         }
+      }
+
+      if (process.env.NODE_ENV === "production" && !apiKey) {
+        return NextResponse.json({ error: "Missing GEMINI_API_KEY in environment variables." }, { status: 500 });
       }
 
       const mockResult = await getMockAnalysis(Math.random().toString());

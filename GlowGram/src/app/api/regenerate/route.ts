@@ -9,7 +9,7 @@ export async function POST(request: Request) {
 
     const apiKey = process.env.GEMINI_API_KEY;
 
-    const MODEL_CANDIDATES = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.0-flash-lite'];
+    const MODEL_CANDIDATES = ['gemini-1.5-flash', 'gemini-1.5-pro'];
 
     if (type === "tracks") {
       if (apiKey) {

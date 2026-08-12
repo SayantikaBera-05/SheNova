@@ -42,10 +42,32 @@ export function TrackCard({ track }: { track: Track }) {
     setIsSwapping(false);
   };
 
+  const artworkUrl =
+    track?.albumArt ||
+    (track as any)?.album_art ||
+    (track as any)?.albumCover ||
+    (track as any)?.coverUrl ||
+    (track as any)?.imageUrl ||
+    (track as any)?.image ||
+    (track as any)?.album?.images?.[0]?.url ||
+    (track as any)?.album?.images?.[1]?.url ||
+    `https://placehold.co/300x300/181824/A855F7?text=${encodeURIComponent((track?.title || "Track").substring(0, 10))}`;
+
   return (
     <GlassCard className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 hoverEffect border">
       <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-lg sm:rounded-xl overflow-hidden shrink-0 group shadow-sm">
-        <img src={track.albumArt} alt={track.title} className="w-full h-full object-cover" />
+        <img
+          src={artworkUrl}
+          alt={track.title}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            const target = e.currentTarget;
+            if (!target.dataset.fallback) {
+              target.dataset.fallback = "true";
+              target.src = `https://placehold.co/300x300/181824/A855F7?text=${encodeURIComponent((track?.title || "Track").substring(0, 10))}`;
+            }
+          }}
+        />
         {track.previewUrl && (
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
             <button onClick={togglePlay} className="text-white hover:scale-110 transition-transform p-1">

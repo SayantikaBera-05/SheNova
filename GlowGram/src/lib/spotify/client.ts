@@ -84,7 +84,7 @@ export async function searchSingleTrack(title: string, artist: string): Promise<
         id: item.id,
         title: item.name,
         artist: item.artists.map((a: any) => a.name).join(", "),
-        albumArt: item.album?.images?.[0]?.url || item.album?.images?.[1]?.url || "https://placehold.co/300x300/181824/A855F7?text=Music",
+        albumArt: item.album?.images?.[0]?.url || item.album?.images?.[1]?.url || item.album?.images?.[2]?.url || `https://placehold.co/300x300/181824/A855F7?text=${encodeURIComponent(title.substring(0, 10))}`,
         previewUrl: item.preview_url || undefined,
         spotifyUrl: item.external_urls?.spotify || `https://open.spotify.com/search/${encodeURIComponent(query)}`
       };
@@ -136,7 +136,7 @@ export async function searchTracks(query: string, limit = 5): Promise<Track[]> {
       id: t.id,
       title: t.name,
       artist: t.artists.map((a: any) => a.name).join(", "),
-      albumArt: t.album?.images?.[0]?.url || "https://placehold.co/300x300/13131C/A855F7?text=Track",
+      albumArt: t.album?.images?.[0]?.url || t.album?.images?.[1]?.url || t.album?.images?.[2]?.url || "https://placehold.co/300x300/13131C/A855F7?text=Track",
       previewUrl: t.preview_url || undefined,
       spotifyUrl: t.external_urls?.spotify
     }));
